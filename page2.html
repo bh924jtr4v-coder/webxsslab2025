@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>XSS URL Scanner</title>
+<style>
+    body {
+        background-color: #4f29b5;
+        font-family: Arial, sans-serif;
+        color: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+        margin: 0;
+    }
+
+    .container {
+        text-align: center;
+    }
+
+    input {
+        width: 320px;
+        padding: 12px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: none;
+        outline: none;
+        box-shadow: 4px 4px 15px rgba(0,0,0,0.45);
+    }
+
+    button {
+        margin-top: 15px;
+        padding: 12px 20px;
+        font-size: 16px;
+        background-color: white;
+        color: #0a1a3c;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        box-shadow: 3px 3px 12px rgba(0,0,0,0.4);
+    }
+ button:hover {
+        background-color: #d9e4ff;
+    }
+
+    #result {
+        margin-top: 20px;
+        font-size: 16px;
+        white-space: pre-line;
+    }
+  .back-btn {
+  display: block;
+  margin: 30px auto 0;
+  padding: 10px 22px;          /* أصغر */
+  max-width: 240px;            /* عرض أقل */
+
+  background: #ffffff;
+  color: #5b2dff;
+
+  text-align: center;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 15px;             /* خط أصغر شوي */
+
+  border-radius: 14px;         /* زوايا أنعم */
+  box-shadow: 0 14px 35px rgba(0,0,0,0.15);
+
+  transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 50px rgba(0,0,0,0.25);
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <h1>XSS Detection Tool</h1>
+    <input id="urlInput" type="url" placeholder="Enter URL here">
+    <br>
+    <button onclick="scanUrl()">Scan</button>
+    <div id="result"></div>
+    <div class="back-card">
+    <a href="Home.html" class="back-btn" target="_top">العودة للصفحة الرئيسية</a>
+    </div>
+</div>
+
+<script>
+function scanUrl() {
+    const urlField = document.getElementById('urlInput');
+    const resultDiv = document.getElementById('result');
+    const url = urlField.value.trim();
+
+    if (!url) {
+        resultDiv.textContent = 'Please enter a URL first.';
+        resultDiv.style.color = 'yellow';
+        return;
+    }
+
+    let queryString = '';
+    try {
+        const parsed = new URL(url);
+        queryString = parsed.search;
+    } catch (e) {
+        resultDiv.textContent = 'Invalid URL format.';
+        resultDiv.style.color = 'red';
+        return;
+    }
+
+    const suspiciousPatterns = [
+        '<script',
+'javascript:',
+        'onerror=',
+        'onload=',
+        'onmouseover=',
+        'alert(',
+        'document.cookie'
+    ];
+
+    const lowerQuery = queryString.toLowerCase();
+    let found = [];
+
+    suspiciousPatterns.forEach(p => {
+        if (lowerQuery.includes(p)) {
+            found.push(p);
+        }
+    });
+
+    if (found.length > 0) {
+        resultDiv.innerHTML =
+            '⚠️ Possible XSS indicators found in URL parameters:\n' +
+            found.map(f => '- ' + f).join('\n');
+        resultDiv.style.color = 'orange';
+    } else {
+        resultDiv.textContent =
+            'No obvious XSS patterns detected in the URL parameters (basic check only).';
+        resultDiv.style.color = 'lightgreen';
+    }
+}
+</script>
+
+</body>
+</html>
